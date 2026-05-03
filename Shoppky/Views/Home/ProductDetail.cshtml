@@ -1,0 +1,193 @@
+@model Product
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index")">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Products")">Products</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Product Image -->
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <img src="@Model.ImageUrl" alt="@Model.Title" class="card-img-top" style="height: 500px; object-fit: cover;" />
+                @if (!Model.InStock)
+                {
+                    <div class="position-absolute top-0 start-0 p-3">
+                        <span class="badge bg-danger fs-6">Out of Stock</span>
+                    </div>
+                }
+            </div>
+            <div class="mt-3">
+                @if (!string.IsNullOrEmpty(Model.AffiliateUrl))
+                {
+                    <a href="@Model.AffiliateUrl" target="_blank" class="btn btn-outline-info w-100" rel="noopener noreferrer">
+                        <i class="bi bi-box-arrow-up-right"></i> View on Amazon
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-md-7">
+            <div class="card shadow-sm p-4">
+                @if (!string.IsNullOrEmpty(Model.Brand))
+                {
+                    <p class="text-muted mb-2"><strong>Brand:</strong> @Model.Brand</p>
+                }
+
+                <h1 class="mb-3">@Model.Title</h1>
+
+                <div class="mb-4">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="fs-5 text-warning">★</span>
+                        <span class="ms-2 fs-5">
+                            @Model.Rating.ToString("0.0") <span class="text-muted">(@Model.ReviewCount reviews)</span>
+                        </span>
+                    </div>
+                    <span class="badge bg-info">@Model.Category</span>
+                </div>
+
+                <div class="alert alert-info mb-4">
+                    <h3 class="mb-0 text-primary">$@Model.Price.ToString("0.00")</h3>
+                    <small class="text-muted">@Model.Currency</small>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Product Description</h5>
+                    <p>@Model.Description</p>
+                </div>
+
+                <div class="mb-4">
+                    <label for="quantity" class="form-label">Quantity:</label>
+                    <div class="input-group" style="max-width: 200px;">
+                        <button class="btn btn-outline-secondary" type="button" id="decreaseQty">-</button>
+                        <input type="number" class="form-control text-center" id="quantity" value="1" min="1" />
+                        <button class="btn btn-outline-secondary" type="button" id="increaseQty">+</button>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success btn-lg" id="addToCartBtn" @if (!Model.InStock) { <text>disabled</text> }>
+                        <i class="bi bi-cart-plus"></i> Add to Cart
+                    </button>
+                    <a href="@Url.Action("Products")" class="btn btn-outline-secondary btn-lg">
+                        Continue Shopping
+                    </a>
+                </div>
+
+                @if (!Model.InStock)
+                {
+                    <div class="alert alert-warning mt-3" role="alert">
+                        This product is currently out of stock. Please check back later.
+                    </div>
+                }
+
+                <div class="mt-4 pt-3 border-top">
+                    <h6 class="mb-3">Product Details</h6>
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td><strong>ASIN:</strong></td>
+                                <td>@Model.Asin</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Last Updated:</strong></td>
+                                <td>@Model.LastSyncedAt.ToString("g")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Stock Status:</strong></td>
+                                <td>
+                                    @if (Model.InStock)
+                                    {
+                                        <span class="badge bg-success">In Stock</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Out of Stock</span>
+                                    }
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const quantityInput = document.getElementById('quantity');
+        const decreaseBtn = document.getElementById('decreaseQty');
+        const increaseBtn = document.getElementById('increaseQty');
+        const addToCartBtn = document.getElementById('addToCartBtn');
+
+        decreaseBtn.addEventListener('click', () => {
+            let value = parseInt(quantityInput.value) || 1;
+            if (value > 1) {
+                quantityInput.value = value - 1;
+            }
+        });
+
+        increaseBtn.addEventListener('click', () => {
+            let value = parseInt(quantityInput.value) || 1;
+            quantityInput.value = value + 1;
+        });
+
+        addToCartBtn.addEventListener('click', function () {
+            const productId = @Model.Id;
+            const quantity = parseInt(quantityInput.value) || 1;
+
+            fetch('@Url.Action("AddToCart")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `productId=${productId}&quantity=${quantity}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`@Model.Title added to cart!`, 'success');
+
+                    // Disable button and show confirmation
+                    addToCartBtn.innerHTML = '<i class="bi bi-check-circle"></i> Added to Cart!';
+                    addToCartBtn.disabled = true;
+
+                    setTimeout(() => {
+                        addToCartBtn.innerHTML = '<i class="bi bi-cart-plus"></i> Add to Cart';
+                        addToCartBtn.disabled = false;
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to add to cart', 'error');
+            });
+        });
+
+        function showNotification(message, type) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 4000);
+        }
+    </script>
+}

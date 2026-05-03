@@ -2,7 +2,159 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- Hero Section -->
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 0; margin-bottom: 50px;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Welcome to Shoppky</h1>
+                <p class="lead mb-4">
+                    Discover amazing products from Amazon with exclusive affiliate links. 
+                    Find the best deals on electronics, office equipment, and more!
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="@Url.Action("Products")" class="btn btn-light btn-lg">
+                        Start Shopping
+                    </a>
+                    <a href="#featured" class="btn btn-outline-light btn-lg">
+                        View Featured
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div style="background: rgba(255,255,255,0.1); padding: 40px; border-radius: 10px;">
+                    <img src="https://via.placeholder.com/400x300?text=Welcome+to+Shoppky" alt="Welcome" class="img-fluid rounded" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <h2 class="text-center mb-5">Why Shop with Shoppky?</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                        <i class="bi bi-lightning"></i>
+                    </div>
+                    <h5 class="card-title">Fast & Easy</h5>
+                    <p class="card-text">
+                        Browse and shop for products effortlessly with our intuitive interface.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="card-title">Trusted Sources</h5>
+                    <p class="card-text">
+                        All products are sourced from Amazon, ensuring quality and reliability.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                        <i class="bi bi-gift"></i>
+                    </div>
+                    <h5 class="card-title">Best Deals</h5>
+                    <p class="card-text">
+                        Find the latest offers and discounts on a wide range of products.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Products Section -->
+<div id="featured" class="bg-light py-5 mb-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Products</h2>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 product-card shadow-sm transition">
+                    <img src="https://via.placeholder.com/300x250?text=Wireless+Headphones" alt="Product" class="card-img-top" style="height: 250px; object-fit: cover;" />
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Premium Wireless Headphones</h5>
+                        <p class="card-text text-muted small flex-grow-1">High-quality sound with noise cancellation</p>
+                        <div class="mb-3">
+                            <span class="text-warning">★★★★★</span> (256 reviews)
+                        </div>
+                        <h4 class="text-primary mb-3">$79.99</h4>
+                        <a href="@Url.Action("Products")" class="btn btn-success btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 product-card shadow-sm transition">
+                    <img src="https://via.placeholder.com/300x250?text=Fast+Charger" alt="Product" class="card-img-top" style="height: 250px; object-fit: cover;" />
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">USB-C Fast Charger</h5>
+                        <p class="card-text text-muted small flex-grow-1">65W compatible with most devices</p>
+                        <div class="mb-3">
+                            <span class="text-warning">★★★★☆</span> (512 reviews)
+                        </div>
+                        <h4 class="text-primary mb-3">$49.99</h4>
+                        <a href="@Url.Action("Products")" class="btn btn-success btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 product-card shadow-sm transition">
+                    <img src="https://via.placeholder.com/300x250?text=Laptop+Stand" alt="Product" class="card-img-top" style="height: 250px; object-fit: cover;" />
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Adjustable Laptop Stand</h5>
+                        <p class="card-text text-muted small flex-grow-1">Ergonomic design for better posture</p>
+                        <div class="mb-3">
+                            <span class="text-warning">★★★★☆</span> (128 reviews)
+                        </div>
+                        <h4 class="text-primary mb-3">$34.99</h4>
+                        <a href="@Url.Action("Products")" class="btn btn-success btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 product-card shadow-sm transition">
+                    <img src="https://via.placeholder.com/300x250?text=Mechanical+Keyboard" alt="Product" class="card-img-top" style="height: 250px; object-fit: cover;" />
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">RGB Mechanical Keyboard</h5>
+                        <p class="card-text text-muted small flex-grow-1">Custom switches with RGB lighting</p>
+                        <div class="mb-3">
+                            <span class="text-warning">★★★★★</span> (384 reviews)
+                        </div>
+                        <h4 class="text-primary mb-3">$119.99</h4>
+                        <a href="@Url.Action("Products")" class="btn btn-success btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-5">
+            <a href="@Url.Action("Products")" class="btn btn-primary btn-lg">
+                View All Products
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action Section -->
+<div style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); color: white; padding: 60px 0; margin-top: 50px;">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Start Shopping?</h2>
+        <p class="lead mb-4">
+            Explore our extensive catalog of quality products and save with our affiliate links.
+        </p>
+        <a href="@Url.Action("Products")" class="btn btn-light btn-lg">
+            Start Shopping Now
+        </a>
+    </div>
 </div>
