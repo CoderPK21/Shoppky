@@ -45,7 +45,7 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>$@item.Product?.Price.ToString("0.00")</td>
+                                            <td>@item.Product?.Currency @item.Product?.Price.ToString("0.00")</td>
                                             <td>
                                                 <div class="input-group" style="width: 120px;">
                                                     <button class="btn btn-outline-secondary btn-sm decrease-qty" data-product-id="@item.ProductId">-</button>
@@ -53,7 +53,7 @@
                                                     <button class="btn btn-outline-secondary btn-sm increase-qty" data-product-id="@item.ProductId">+</button>
                                                 </div>
                                             </td>
-                                            <td class="item-total">$@((item.Product?.Price ?? 0) * item.Quantity).ToString("0.00")</td>
+                                            <td class="item-total">@item.Product?.Currency @((item.Product?.Price ?? 0) * item.Quantity).ToString("0.00")</td>
                                             <td>
                                                 <button class="btn btn-sm btn-outline-danger remove-from-cart" data-product-id="@item.ProductId">
                                                     <i class="bi bi-trash"></i>
@@ -83,20 +83,20 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal:</span>
-                            <span id="subtotal">$@Model.GetTotalPrice().ToString("0.00")</span>
+                            <span id="subtotal">@Model.GetTotalPrice().ToString("0.00")</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Shipping:</span>
-                            <span id="shipping">$0.00</span>
+                            <span id="shipping">0.00</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Tax (estimated):</span>
-                            <span id="tax">$0.00</span>
+                            <span id="tax">0.00</span>
                         </div>
                         <hr />
                         <div class="d-flex justify-content-between mb-3">
                             <strong>Total:</strong>
-                            <strong id="total">$@Model.GetTotalPrice().ToString("0.00")</strong>
+                            <strong id="total">@Model.GetTotalPrice().ToString("0.00")</strong>
                         </div>
                         <button class="btn btn-success btn-lg w-100 mb-2">
                             Proceed to Checkout
@@ -123,12 +123,11 @@
     }
     else
     {
-        <div class="alert alert-info" role="alert">
-            <h4 class="alert-heading">Your cart is empty</h4>
-            <p>Looks like you haven't added any products to your cart yet.</p>
-            <hr />
-            <a href="@Url.Action("Products")" class="btn btn-primary">
-                Start Shopping
+        <div class="alert alert-info text-center">
+            <h4>Your cart is empty</h4>
+            <p>Start shopping to add items to your cart</p>
+            <a href="@Url.Action("Products")" class="btn btn-primary mt-3">
+                Continue Shopping
             </a>
         </div>
     }
@@ -136,93 +135,298 @@
 
 @section Scripts {
     <script>
-        document.querySelectorAll('.increase-qty').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const productId = this.dataset.productId;
-                const input = document.querySelector(`.qty-input[data-product-id="${productId}"]`);
-                const newQty = parseInt(input.value) + 1;
-                updateQuantity(productId, newQty);
-            });
-        });
+        // Cart Manager - Production Ready
+        class CartManager {
+            constructor() {
+                this.maxQuantity = 999;
+                this.minQuantity = 1;
+                this.debounceTimer = null;
+                this.init();
+            }
 
-        document.querySelectorAll('.decrease-qty').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const productId = this.dataset.productId;
-                const input = document.querySelector(`.qty-input[data-product-id="${productId}"]`);
-                const newQty = Math.max(1, parseInt(input.value) - 1);
-                updateQuantity(productId, newQty);
-            });
-        });
+            init() {
+                this.setupEventListeners();
+            }
 
-        document.querySelectorAll('.qty-input').forEach(input => {
-            input.addEventListener('change', function () {
-                const productId = this.dataset.productId;
-                const newQty = Math.max(1, parseInt(this.value) || 1);
-                updateQuantity(productId, newQty);
-            });
-        });
+            setupEventListeners() {
+                // Event delegation for dynamic content
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('decrease-qty')) {
+                        this.handleDecreaseClick(e);
+                    }
+                    if (e.target.classList.contains('increase-qty')) {
+                        this.handleIncreaseClick(e);
+                    }
+                    if (e.target.classList.contains('remove-from-cart')) {
+                        this.handleRemoveClick(e);
+                    }
+                });
 
-        document.querySelectorAll('.remove-from-cart').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const productId = this.dataset.productId;
-                if (confirm('Are you sure you want to remove this item?')) {
-                    fetch('@Url.Action("RemoveFromCart")', {
+                // Quantity input change event
+                document.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('qty-input')) {
+                        this.handleQuantityChange(e);
+                    }
+                });
+
+                // Quantity input blur event for validation
+                document.addEventListener('blur', (e) => {
+                    if (e.target.classList.contains('qty-input')) {
+                        this.validateQuantityInput(e.target);
+                    }
+                }, true);
+            }
+
+            handleDecreaseClick(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const productId = e.target.getAttribute('data-product-id');
+                const input = document.querySelector(`input.qty-input[data-product-id="${productId}"]`);
+
+                if (input) {
+                    let currentQty = parseInt(input.value) || this.minQuantity;
+                    if (currentQty > this.minQuantity) {
+                        currentQty--;
+                        input.value = currentQty;
+                        this.updateQuantity(productId, currentQty);
+                    }
+                }
+            }
+
+            handleIncreaseClick(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const productId = e.target.getAttribute('data-product-id');
+                const input = document.querySelector(`input.qty-input[data-product-id="${productId}"]`);
+
+                if (input) {
+                    let currentQty = parseInt(input.value) || this.minQuantity;
+                    if (currentQty < this.maxQuantity) {
+                        currentQty++;
+                        input.value = currentQty;
+                        this.updateQuantity(productId, currentQty);
+                    }
+                }
+            }
+
+            handleRemoveClick(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const productId = e.target.closest('button').getAttribute('data-product-id');
+
+                if (confirm('Are you sure you want to remove this item from your cart?')) {
+                    this.removeFromCart(productId);
+                }
+            }
+
+            handleQuantityChange(e) {
+                const productId = e.target.getAttribute('data-product-id');
+                const quantity = parseInt(e.target.value) || this.minQuantity;
+
+                if (quantity >= this.minQuantity && quantity <= this.maxQuantity) {
+                    this.updateQuantity(productId, quantity);
+                } else {
+                    this.validateQuantityInput(e.target);
+                }
+            }
+
+            validateQuantityInput(input) {
+                let quantity = parseInt(input.value) || this.minQuantity;
+
+                if (quantity < this.minQuantity) {
+                    quantity = this.minQuantity;
+                } else if (quantity > this.maxQuantity) {
+                    quantity = this.maxQuantity;
+                }
+
+                input.value = quantity;
+            }
+
+            updateQuantity(productId, quantity) {
+                // Debounce the update to prevent multiple rapid requests
+                clearTimeout(this.debounceTimer);
+
+                const button = document.querySelector(`button[data-product-id="${productId}"]`);
+                if (button) {
+                    button.disabled = true;
+                }
+
+                this.debounceTimer = setTimeout(() => {
+                    fetch('/Home/UpdateCartQuantity', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                             'X-Requested-With': 'XMLHttpRequest'
                         },
-                        body: `productId=${productId}`
+                        body: `productId=${encodeURIComponent(productId)}&quantity=${encodeURIComponent(quantity)}`
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
-                            document.querySelector(`.cart-item[data-product-id="${productId}"]`).remove();
-                            updateCartSummary(data);
-
-                            // If cart is empty, reload the page
-                            if (data.cartCount === 0) {
-                                setTimeout(() => location.reload(), 500);
-                            }
+                            this.updateItemTotal(productId, data.itemTotal);
+                            this.updateCartSummary();
+                            this.showNotification('Quantity updated successfully', 'success');
+                        } else {
+                            this.showNotification('Failed to update quantity', 'error');
+                            // Reset the input to previous value
+                            location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating quantity:', error);
+                        this.showNotification('Error updating quantity. Please try again.', 'error');
+                        // Reset the input to previous value
+                        location.reload();
+                    })
+                    .finally(() => {
+                        if (button) {
+                            button.disabled = false;
                         }
                     });
+                }, 300);
+            }
+
+            removeFromCart(productId) {
+                const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+                if (row) {
+                    row.style.pointerEvents = 'none';
+                    row.style.opacity = '0.5';
                 }
-            });
+
+                fetch('/Home/RemoveFromCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `productId=${encodeURIComponent(productId)}`
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        if (row) {
+                            row.style.transition = 'opacity 0.3s ease';
+                            row.style.opacity = '0';
+                            setTimeout(() => {
+                                row.remove();
+
+                                // Check if cart is empty
+                                if (data.cartCount === 0) {
+                                    this.showNotification('Item removed. Your cart is now empty.', 'info');
+                                    setTimeout(() => location.reload(), 1500);
+                                } else {
+                                    this.updateCartSummary();
+                                    this.showNotification('Item removed from cart', 'success');
+                                }
+                            }, 300);
+                        }
+                    } else {
+                        this.showNotification('Failed to remove item from cart', 'error');
+                        if (row) {
+                            row.style.pointerEvents = 'auto';
+                            row.style.opacity = '1';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error removing item:', error);
+                    this.showNotification('Error removing item. Please try again.', 'error');
+                    if (row) {
+                        row.style.pointerEvents = 'auto';
+                        row.style.opacity = '1';
+                    }
+                });
+            }
+
+            updateItemTotal(productId, itemTotal) {
+                const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+                if (row) {
+                    const totalCell = row.querySelector('.item-total');
+                    if (totalCell) {
+                        totalCell.textContent = this.formatCurrency(itemTotal, 'INR');
+                    }
+                }
+            }
+
+            updateCartSummary() {
+                let subtotal = 0;
+                document.querySelectorAll('.item-total').forEach(element => {
+                    const text = element.textContent.trim();
+                    const number = parseFloat(text.replace(/[^0-9.-]+/g, ''));
+                    if (!isNaN(number)) {
+                        subtotal += number;
+                    }
+                });
+
+                const subtotalEl = document.getElementById('subtotal');
+                const totalEl = document.getElementById('total');
+                const itemCountEl = document.getElementById('item-count');
+
+                if (subtotalEl) {
+                    subtotalEl.textContent = this.formatCurrency(subtotal, 'INR');
+                }
+                if (totalEl) {
+                    totalEl.textContent = this.formatCurrency(subtotal, 'INR');
+                }
+
+                // Update item count
+                const itemCount = document.querySelectorAll('tr.cart-item').length;
+                if (itemCountEl) {
+                    itemCountEl.textContent = itemCount;
+                }
+            }
+
+            formatCurrency(amount, currency = 'INR') {
+                try {
+                    return new Intl.NumberFormat('en-IN', {
+                        style: 'currency',
+                        currency: currency
+                    }).format(amount);
+                } catch (error) {
+                    console.error('Currency formatting error:', error);
+                    return `₹${parseFloat(amount).toFixed(2)}`;
+                }
+            }
+
+            showNotification(message, type = 'info') {
+                const alertClass = type === 'success' ? 'alert-success' :
+                                  type === 'error' ? 'alert-danger' : 'alert-info';
+
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+                alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);';
+                alertDiv.setAttribute('role', 'alert');
+                alertDiv.innerHTML = `
+                    <strong>${type.charAt(0).toUpperCase() + type.slice(1)}!</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+
+                document.body.appendChild(alertDiv);
+
+                const bootstrap = window.bootstrap;
+                if (bootstrap && bootstrap.Alert) {
+                    new bootstrap.Alert(alertDiv);
+                }
+
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 4000);
+            }
+        }
+
+        // Initialize cart manager when DOM is ready
+        document.addEventListener('DOMContentLoaded', function () {
+            window.cartManager = new CartManager();
         });
-
-        function updateQuantity(productId, quantity) {
-            fetch('@Url.Action("UpdateCartQuantity")', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: `productId=${productId}&quantity=${quantity}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update item total
-                    const row = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
-                    const itemTotal = row.querySelector('.item-total');
-                    itemTotal.textContent = '$' + data.itemTotal.toFixed(2);
-
-                    updateCartSummary(data);
-                }
-            });
-        }
-
-        function updateCartSummary(data) {
-            document.getElementById('subtotal').textContent = '$' + data.total.toFixed(2);
-            document.getElementById('total').textContent = '$' + data.total.toFixed(2);
-            document.getElementById('item-count').textContent = data.cartCount;
-
-            // Update quantity display
-            let totalQty = 0;
-            document.querySelectorAll('.qty-input').forEach(input => {
-                totalQty += parseInt(input.value) || 0;
-            });
-            document.getElementById('total-quantity').textContent = totalQty;
-        }
     </script>
 }
