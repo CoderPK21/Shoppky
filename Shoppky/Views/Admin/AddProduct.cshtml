@@ -1,0 +1,162 @@
+@model Shoppky.Models.Product
+
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Add Product" : "Edit Product";
+    bool isEdit = Model.Id != 0;
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2>@ViewData["Title"]</h2>
+            <hr>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <h5>Please fix the following errors:</h5>
+                    <ul>
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(x => x.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <form method="post" action="@(isEdit ? Url.Action("EditProduct", "Admin") : Url.Action("AddProduct", "Admin"))">
+                @Html.AntiForgeryToken()
+
+                @if (isEdit)
+                {
+                    <input type="hidden" asp-for="Id">
+                }
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Asin" class="form-label">ASIN (Amazon ID)</label>
+                            @if (isEdit)
+                            {
+                                <input asp-for="Asin" class="form-control" required readonly>
+                            }
+                            else
+                            {
+                                <input asp-for="Asin" class="form-control" required>
+                            }
+                            <span asp-validation-for="Asin" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">Title</label>
+                            <input asp-for="Title" class="form-control" required>
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Brand" class="form-label">Brand</label>
+                            <input asp-for="Brand" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Category" class="form-label">Category</label>
+                            <input asp-for="Category" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="Price" class="form-label">Price ($)</label>
+                            <input asp-for="Price" class="form-control" type="number" step="0.01" required>
+                            <span asp-validation-for="Price" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="Currency" class="form-label">Currency</label>
+                            <input asp-for="Currency" class="form-control" value="USD">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="Rating" class="form-label">Rating (0-5)</label>
+                            <input asp-for="Rating" class="form-control" type="number" step="0.1" min="0" max="5">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="ReviewCount" class="form-label">Review Count</label>
+                            <input asp-for="ReviewCount" class="form-control" type="number" min="0">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="InStock" class="form-label">
+                                <input asp-for="InStock" type="checkbox" class="form-check-input">
+                                In Stock
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ImageUrl" class="form-label">Image URL</label>
+                    <input asp-for="ImageUrl" class="form-control" type="url" placeholder="https://example.com/image.jpg">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <div class="mt-2">
+                            <img src="@Model.ImageUrl" alt="Product" class="img-thumbnail" style="max-width: 200px;">
+                        </div>
+                    }
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Url" class="form-label">Product URL</label>
+                    <input asp-for="Url" class="form-control" type="url" placeholder="https://amazon.com/...">
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="AffiliateUrl" class="form-label">Affiliate URL</label>
+                    <input asp-for="AffiliateUrl" class="form-control" type="url" placeholder="https://amazon.com/...?tag=youraffiliateID">
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> @(isEdit ? "Update" : "Create") Product
+                    </button>
+                    <a href="@Url.Action("Products", "Admin")" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-label {
+        font-weight: 600;
+        color: #333;
+    }
+</style>

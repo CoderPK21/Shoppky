@@ -8,7 +8,7 @@ namespace Shoppky.Models
         public string? Brand { get; set; }
         public string? Description { get; set; }
         public decimal Price { get; set; }
-        public string Currency { get; set; } = "USD";
+        public string Currency { get; set; } = "INR";
         public string? Url { get; set; }
         public string? AffiliateUrl { get; set; }
         public string? ImageUrl { get; set; }

@@ -1,0 +1,54 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Admin Dashboard</h2>
+                <div>
+                    <span class="badge bg-primary">@Context.Session.GetString("AdminUsername")</span>
+                    <a href="@Url.Action("Logout", "Admin")" class="btn btn-outline-danger btn-sm ms-2">Logout</a>
+                </div>
+            </div>
+            <hr>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Total Products</h5>
+                    <h2 class="text-primary">@ViewBag.TotalProducts</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">In Stock</h5>
+                    <h2 class="text-success">@ViewBag.ActiveProducts</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-12">
+            <h4 class="mb-3">Quick Actions</h4>
+            <a href="@Url.Action("AddProduct", "Admin")" class="btn btn-success me-2">
+                <i class="bi bi-plus"></i> Add New Product
+            </a>
+            <a href="@Url.Action("Products", "Admin")" class="btn btn-primary me-2">
+                <i class="bi bi-list"></i> Manage Products
+            </a>
+            <a href="@Url.Action("Users", "Admin")" class="btn btn-info">
+                <i class="bi bi-people"></i> Manage Users
+            </a>
+        </div>
+    </div>
+</div>
